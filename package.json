@@ -2,23 +2,37 @@
   "name": "@zunialab/backend",
   "version": "0.0.0",
   "private": true,
-  "description": "Zunia backend API scaffold (notifications, push, indexer proxy)",
+  "packageManager": "pnpm@9.15.0",
+  "description": "Zunia backend API (notifications, push, indexer proxy)",
   "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "scripts": {
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "build": "tsc -p tsconfig.json",
-    "dev": "echo \"Implement API server after ADR + indexer choice\"",
+    "dev": "tsx watch src/server.ts",
+    "start": "node dist/src/server.js",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
     "test": "node --import tsx --test src/**/*.test.ts"
   },
+  "dependencies": {
+    "@hono/node-server": "^1.14.0",
+    "@hono/zod-validator": "^0.4.0",
+    "@vercel/queue": "^0.1.7",
+    "drizzle-orm": "^0.39.0",
+    "hono": "^4.7.0",
+    "postgres": "^3.4.5",
+    "zod": "^3.24.0"
+  },
   "devDependencies": {
+    "@types/node": "^22.0.0",
+    "drizzle-kit": "^0.30.0",
     "tsx": "^4.19.0",
     "typescript": "^5.7.0"
   },
   "engines": {
     "node": ">=22"
   },
-  "license": "Apache-2.0",
-  "dependencies": {
-    "@vercel/queue": "^0.1.7"
-  }
+  "license": "Apache-2.0"
 }

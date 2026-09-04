@@ -5,9 +5,15 @@
     "moduleResolution": "Bundler",
     "strict": true,
     "skipLibCheck": true,
+    "declaration": true,
     "outDir": "dist",
     "rootDir": ".",
-    "noEmit": true
+    "noEmit": false,
+    "noUncheckedIndexedAccess": true,
+    "lib": ["ES2022", "DOM"],
+    "types": ["node"],
+    "resolveJsonModule": true
   },
-  "include": ["src", "config"]
+  "include": ["src", "config", "api", "drizzle.config.ts"],
+  "exclude": ["src/**/*.test.ts", "dist", "node_modules"]
 }

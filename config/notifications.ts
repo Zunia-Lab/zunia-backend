@@ -52,7 +52,12 @@ export const NOTIFICATION_CONFIG = {
   secrets: {
     vapidPublicKey: "VAPID_PUBLIC_KEY",
     vapidPrivateKey: "VAPID_PRIVATE_KEY",
-    fcmServerKey: "FCM_SERVER_KEY",
+    vapidSubject: "VAPID_SUBJECT",
+    /** FCM HTTP v1 service account JSON path (legacy FCM_SERVER_KEY deprecated) */
+    fcmServiceAccountPath: "FCM_SERVICE_ACCOUNT_PATH",
     apnsKeyId: "APNS_KEY_ID",
+    apnsTeamId: "APNS_TEAM_ID",
+    apnsKeyPath: "APNS_KEY_PATH",
+    apnsBundleId: "APNS_BUNDLE_ID",
   },
 } as const;

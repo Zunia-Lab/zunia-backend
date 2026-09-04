@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "updatedAt": "2026-08-31T00:00:00.000Z",
+  "domains": [
+    "example-phishing.invalid",
+    "zuniawallet-login.invalid"
+  ],
+  "urls": [],
+  "notes": "Placeholder feed — replace with curated / mirrored blocklist"
+}

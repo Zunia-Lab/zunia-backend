@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="https://raw.githubusercontent.com/Zunia-Lab/zunia-brand/main/png/icons/app/zunia-icon-256.png" alt="Zunia" width="96" />
+</p>
+
 # zunia-backend
 
 > API for notifications, push registry, indexer proxy, phishing list, and opt-in analytics.
