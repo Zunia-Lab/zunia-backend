@@ -40,7 +40,7 @@ pnpm typecheck
 
 ## Security
 
-[security@zuniawallet.com](mailto:security@zuniawallet.com)
+[security@zunialab.com](mailto:security@zunialab.com)
 
 ## License
 

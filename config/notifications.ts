@@ -45,7 +45,7 @@ export const NOTIFICATION_CONFIG = {
     transfer: "zunia://tx/{hash}",
     proposal: "zunia://gov/{chainId}/{proposalId}",
     dappRequest: "zunia://wc",
-    universalBase: "https://zuniawallet.com",
+    universalBase: "https://zunialab.com",
   },
 
   /** Env var names — values never committed */

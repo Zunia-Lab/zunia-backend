@@ -7,7 +7,7 @@ export const PRIVACY_CONFIG = {
   includeAddressesInPushPayload: false,
   analyticsDefault: "opt_in" as const,
   retainDeadPushTokensDays: 30,
-  publishPolicyUrl: "https://zuniawallet.com/privacy",
+  publishPolicyUrl: "https://zunialab.com/privacy",
   /** ADR-0003: self-custody only — never store seeds / MPC shares */
   allowSeedOrKeyBackupStorage: false,
   allowMpcOrSocialLoginCoordination: false,
