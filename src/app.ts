@@ -9,6 +9,7 @@ import {
 } from "./middleware/rate-limit.js";
 import { createPushRoutes } from "./routes/push.js";
 import { createProxyRoutes } from "./routes/proxy.js";
+import { createConnectRoutes } from "./routes/connect.js";
 
 export type AppDeps = {
   db?: Db;
@@ -24,7 +25,10 @@ export function createApp(deps: AppDeps = {}) {
   app.use(
     "*",
     cors({
-      origin: (origin) => (origins.includes(origin) ? origin : null),
+      origin: (origin) =>
+        !origin || origins.includes(origin) || origins.includes("*")
+          ? origin || "*"
+          : null,
       allowMethods: ["GET", "POST", "DELETE", "OPTIONS"],
       allowHeaders: [
         "Content-Type",
@@ -50,6 +54,7 @@ export function createApp(deps: AppDeps = {}) {
       ok: true,
       service: "zunia-backend",
       db: deps.db ? "configured" : "unset",
+      connect: "enabled",
       time: new Date().toISOString(),
     }),
   );
@@ -63,6 +68,7 @@ export function createApp(deps: AppDeps = {}) {
   }
 
   app.route("/", createProxyRoutes());
+  app.route("/", createConnectRoutes());
 
   return app;
 }
