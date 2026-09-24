@@ -1,4 +1,5 @@
 import {
+  boolean,
   pgTable,
   text,
   timestamp,
@@ -89,7 +90,29 @@ export const deadTokens = pgTable(
   ],
 );
 
+/**
+ * zunia.connect.v2 relay sessions, kept so pairings survive a restart.
+ * Only SHA-256 token hashes: a leaked row cannot join, resume or delete a session.
+ * No dApp metadata and no frames; those travel end to end encrypted.
+ */
+export const connectSessions = pgTable(
+  "connect_sessions",
+  {
+    id: text("id").primaryKey(),
+    dappTokenHash: text("dapp_token_hash").notNull(),
+    /** Cleared when the wallet joins, so the QR code works once. */
+    walletJoinTokenHash: text("wallet_join_token_hash"),
+    walletResumeTokenHash: text("wallet_resume_token_hash"),
+    verifiedOrigin: text("verified_origin"),
+    paired: boolean("paired").notNull().default(false),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("connect_sessions_expires_idx").on(t.expiresAt)],
+);
+
 export type Device = typeof devices.$inferSelect;
 export type AddressWatch = typeof addressWatches.$inferSelect;
 export type NotificationLogRow = typeof notificationLog.$inferSelect;
 export type DeadToken = typeof deadTokens.$inferSelect;
+export type ConnectSessionRow = typeof connectSessions.$inferSelect;

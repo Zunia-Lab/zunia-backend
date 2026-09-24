@@ -24,3 +24,22 @@ export {
   proxyWalletHistory,
 } from "../config/indexer.js";
 export { loadCorsOrigins, DEFAULT_CORS_ORIGINS } from "../config/cors.js";
+export {
+  createConnectRelay,
+  type ConnectRelay,
+  type ConnectRelayOptions,
+} from "./connect/relay.js";
+export {
+  MemoryConnectStore,
+  PgConnectStore,
+  type ConnectSessionRecord,
+  type ConnectStore,
+} from "./connect/store.js";
+export * from "./connect/protocol.js";
+export {
+  CONNECT_RELAY_CONFIG,
+  loadProxyTrust,
+  loadPublicWsBase,
+  type ConnectRelayConfig,
+  type ProxyTrust,
+} from "../config/connect.js";

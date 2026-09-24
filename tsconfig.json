@@ -15,5 +15,5 @@
     "resolveJsonModule": true
   },
   "include": ["src", "config", "api", "drizzle.config.ts"],
-  "exclude": ["src/**/*.test.ts", "dist", "node_modules"]
+  "exclude": ["src/**/*.test.ts", "src/**/test-support.ts", "dist", "node_modules"]
 }

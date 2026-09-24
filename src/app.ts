@@ -9,13 +9,17 @@ import {
 } from "./middleware/rate-limit.js";
 import { createPushRoutes } from "./routes/push.js";
 import { createProxyRoutes } from "./routes/proxy.js";
-import { createConnectRoutes } from "./routes/connect.js";
+import type { ConnectRelay } from "./connect/relay.js";
 
 export type AppDeps = {
   db?: Db;
   rateLimitStore?: RateLimitStore;
   corsOrigins?: string[];
+  /** zunia.connect.v2 relay. Its WebSocket side is attached to the HTTP server separately. */
+  connectRelay?: ConnectRelay;
 };
+
+const CONNECT_PREFIX = "/v1/connect/";
 
 export function createApp(deps: AppDeps = {}) {
   const app = new Hono();
@@ -25,8 +29,12 @@ export function createApp(deps: AppDeps = {}) {
   app.use(
     "*",
     cors({
-      origin: (origin) =>
-        !origin || origins.includes(origin) || origins.includes("*")
+      // Any dApp may open a relay session: those routes use bearer tokens, never cookies.
+      origin: (origin, c) =>
+        !origin ||
+        c.req.path.startsWith(CONNECT_PREFIX) ||
+        origins.includes(origin) ||
+        origins.includes("*")
           ? origin || "*"
           : null,
       allowMethods: ["GET", "POST", "DELETE", "OPTIONS"],
@@ -54,7 +62,7 @@ export function createApp(deps: AppDeps = {}) {
       ok: true,
       service: "zunia-backend",
       db: deps.db ? "configured" : "unset",
-      connect: "enabled",
+      connect: deps.connectRelay ? "enabled" : "unset",
       time: new Date().toISOString(),
     }),
   );
@@ -68,7 +76,12 @@ export function createApp(deps: AppDeps = {}) {
   }
 
   app.route("/", createProxyRoutes());
-  app.route("/", createConnectRoutes());
+
+  if (deps.connectRelay) {
+    app.route("/", deps.connectRelay.routes);
+  } else {
+    app.all(`${CONNECT_PREFIX}*`, (c) => c.json({ error: "Connect relay not configured" }, 503));
+  }
 
   return app;
 }
