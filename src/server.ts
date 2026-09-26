@@ -28,8 +28,9 @@ const connectRelay = createConnectRelay({
 const app = createApp({ db: dbHandle?.db, connectRelay });
 
 const port = Number(process.env.PORT ?? 8788);
-const server = serve({ fetch: app.fetch, port }, () => {
-  console.log(`zunia-backend :${port}`);
+const hostname = process.env.HOSTNAME ?? "127.0.0.1";
+const server = serve({ fetch: app.fetch, port, hostname }, () => {
+  console.log(`zunia-backend ${hostname}:${port}`);
   console.log(
     `[connect] ws ${process.env.CONNECT_WS_PUBLIC_URL ?? `ws://localhost:${port}`}/v1/connect/ws`,
   );
