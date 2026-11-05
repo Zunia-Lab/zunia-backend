@@ -35,6 +35,21 @@ export interface IndexerWatchConfig {
 }
 
 /**
+ * An abort signal that fires after `ms`. `AbortSignal.timeout` unrefs its
+ * timer on Node 20 and 22, so a call with nothing else pending lets the
+ * process (or a test) end before the deadline; this timer is ref'd, and
+ * `clear` drops it once the call settles.
+ */
+function deadline(ms: number): { signal: AbortSignal; clear: () => void } {
+  const controller = new AbortController();
+  const timer = setTimeout(
+    () => controller.abort(new DOMException("The operation timed out.", "TimeoutError")),
+    ms,
+  );
+  return { signal: controller.signal, clear: () => clearTimeout(timer) };
+}
+
+/**
  * The watch call. Never throws: a refusal or an outage is logged (chain and
  * status only, never the address) and reported, and the subscribe that asked
  * still succeeds.
@@ -54,12 +69,13 @@ export function createIndexerWatch(config: IndexerWatchConfig): IndexerWatch {
     };
     if (config.apiKey) headers["x-api-key"] = config.apiKey;
     if (config.subscribeToken) headers[INDEXER_SUBSCRIBE_TOKEN_HEADER] = config.subscribeToken;
+    const limit = deadline(timeoutMs);
     try {
       const res = await fetchFn(url, {
         method: "POST",
         headers,
         body: JSON.stringify({ chainId, address }),
-        signal: AbortSignal.timeout(timeoutMs),
+        signal: limit.signal,
       });
       if (res.ok) return "watching";
       if (res.status >= 500 || res.status === 429) {
@@ -75,6 +91,8 @@ export function createIndexerWatch(config: IndexerWatchConfig): IndexerWatch {
       const name = err instanceof Error ? err.name : "error";
       log(`[indexer-watch] ${chainId}: indexer unreachable (${name})`);
       return "unavailable";
+    } finally {
+      limit.clear();
     }
   };
 }
