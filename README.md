@@ -37,7 +37,7 @@ The protocol itself is in [`src/connect/protocol.ts`](./src/connect/protocol.ts)
 
 | Variable | Purpose |
 |----------|---------|
-| `FCM_SERVICE_ACCOUNT_PATH` | Service account key file of the Firebase project (JSON, mode 600), with the Firebase Cloud Messaging API Admin role. Without it every send fails as `fcm_not_configured`. |
+| `FCM_SERVICE_ACCOUNT_PATH` | Service account key file of the Firebase project (JSON, mode 600). Use an account that holds only the Firebase Cloud Messaging API Admin role (`roles/firebasecloudmessaging.admin`); production uses `zunia-push-sender@zunia-72ab8.iam.gserviceaccount.com`, never the Firebase Admin SDK account. The key is read at start, so a new file needs a restart. Without it every send fails as `fcm_not_configured`. |
 | `FCM_PROJECT_ID` | Optional. Overrides the key's `project_id`. |
 | `INTERNAL_EVENTS_TOKEN` | Shared secret of 32+ characters the indexer sends as `x-zunia-internal-token`, equal to its `BACKEND_EVENTS_TOKEN`. While unset, events are refused. |
 | `ADDRESS_PEPPER` | 16+ characters. Peppers the address hashes; subscribe fails without it. Changing it orphans every watch. |
