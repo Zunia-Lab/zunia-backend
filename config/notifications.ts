@@ -1,6 +1,7 @@
 /**
- * Notification categories and transport defaults.
- * Wire to FCM / Web Push / chrome.notifications in Phase 3.
+ * Notification categories, transport defaults and the one mobile push text.
+ * Mobile push goes through FCM HTTP v1 (src/push/fcm.ts); Web Push and
+ * chrome.notifications are still to come.
  */
 
 export const NOTIFICATION_CONFIG = {
@@ -41,6 +42,17 @@ export const NOTIFICATION_CONFIG = {
     maxPerUserPerHour: 30,
   },
 
+  /**
+   * The text of every mobile push. It names no amount, address or chain
+   * (config/privacy.ts): the app reads the push's data and fetches the detail.
+   */
+  push: {
+    title: "Zunia",
+    body: "New activity in your wallet",
+    /** The Android channel zunia-mobile creates at start. */
+    androidChannelId: "zunia_activity",
+  },
+
   deepLinks: {
     transfer: "zunia://tx/{hash}",
     proposal: "zunia://gov/{chainId}/{proposalId}",
@@ -55,6 +67,18 @@ export const NOTIFICATION_CONFIG = {
     vapidSubject: "VAPID_SUBJECT",
     /** FCM HTTP v1 service account JSON path (legacy FCM_SERVER_KEY deprecated) */
     fcmServiceAccountPath: "FCM_SERVICE_ACCOUNT_PATH",
+    /** Optional: overrides the project_id of the service account file */
+    fcmProjectId: "FCM_PROJECT_ID",
+    /** Shared secret zunia-indexer presents on POST /internal/tx-events (32+ characters) */
+    internalEventsToken: "INTERNAL_EVENTS_TOKEN",
+    /** zunia-indexer base URL, also used by the history proxy (default http://127.0.0.1:8787) */
+    indexerApiUrl: "INDEXER_API_URL",
+    /** zunia-indexer's INDEXER_API_KEY, sent as x-api-key */
+    indexerApiKey: "INDEXER_API_KEY",
+    /** One of zunia-indexer's INDEXER_SUBSCRIBE_TOKEN values, sent as x-zunia-subscribe-token */
+    indexerSubscribeToken: "INDEXER_SUBSCRIBE_TOKEN",
+    /** Peppers address hashes (src/privacy/hash.ts), 16+ characters; required by subscribe */
+    addressPepper: "ADDRESS_PEPPER",
     apnsKeyId: "APNS_KEY_ID",
     apnsTeamId: "APNS_TEAM_ID",
     apnsKeyPath: "APNS_KEY_PATH",

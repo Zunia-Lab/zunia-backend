@@ -1,6 +1,8 @@
 /**
- * Hono HTTP + WebSocket entrypoint for local / container runs.
- * Vercel queue consumer lives in api/queues/tx-events.ts.
+ * Hono HTTP + WebSocket entrypoint for local / container runs, and for the
+ * Hetzner host. There, zunia-indexer delivers tx events to POST
+ * /internal/tx-events (src/routes/internal.ts); on Vercel the queue consumer
+ * in api/queues/tx-events.ts does the same.
  */
 import { serve } from "@hono/node-server";
 import type { Server } from "node:http";
@@ -9,6 +11,9 @@ import { createDb } from "./db/client.js";
 import { createConnectRelay } from "./connect/relay.js";
 import { MemoryConnectStore, PgConnectStore } from "./connect/store.js";
 import { loadProxyTrust, loadPublicWsBase } from "../config/connect.js";
+import { loadInternalEventsToken } from "./routes/internal.js";
+import { fcmSenderFromEnv } from "./push/fcm.js";
+import { indexerWatchFromEnv } from "./push/indexer-watch.js";
 
 const databaseUrl = process.env.DATABASE_URL;
 const dbHandle = databaseUrl ? createDb(databaseUrl) : undefined;
@@ -19,13 +24,27 @@ if (!databaseUrl) {
   console.log("[db] postgres");
 }
 
+const proxyTrust = loadProxyTrust();
 const connectRelay = createConnectRelay({
   store: dbHandle ? new PgConnectStore(dbHandle.db) : new MemoryConnectStore(),
-  proxyTrust: loadProxyTrust(),
+  proxyTrust,
   publicWsBase: loadPublicWsBase(),
 });
 
-const app = createApp({ db: dbHandle?.db, connectRelay });
+const internalEventsToken = loadInternalEventsToken();
+if (!internalEventsToken) {
+  console.warn("[push] INTERNAL_EVENTS_TOKEN unset: tx events from the indexer are refused");
+}
+// Read the service account now, so a missing or broken key shows at boot.
+void fcmSenderFromEnv();
+
+const app = createApp({
+  db: dbHandle?.db,
+  connectRelay,
+  proxyTrust,
+  internalEventsToken,
+  indexerWatch: indexerWatchFromEnv(),
+});
 
 const port = Number(process.env.PORT ?? 8788);
 const hostname = process.env.HOSTNAME ?? "127.0.0.1";

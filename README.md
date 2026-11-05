@@ -26,11 +26,29 @@ Pairs a dApp in a browser with the Zunia mobile wallet through a QR code, then f
 
 The protocol itself is in [`src/connect/protocol.ts`](./src/connect/protocol.ts); limits are in [`config/connect.ts`](./config/connect.ts).
 
+## Mobile push
+
+1. The app subscribes once per wallet and chain: `POST /v1/devices/subscribe` with `{platform, pushToken, locale, prefs, chainId, address}`. `pushToken` is an FCM registration token on Android and on iOS (firebase_messaging). Only a peppered hash of the address is stored. The answer's `realtime` says whether the indexer took the watch (`watching`, `refused`, `unavailable`).
+2. The backend asks zunia-indexer to watch the pair (`POST /v1/wallets/subscribe` there, with the device id as `x-zunia-subject`). The indexer keeps a push watch for 30 days; every subscribe call renews it, so the app repeats its subscribe calls well within that.
+3. The indexer POSTs each transaction it sees for a watched wallet to `POST /internal/tx-events` (`{chainId, address, txHash}`, header `x-zunia-internal-token`).
+4. The backend sends one FCM HTTP v1 message per subscribed device, iOS included: FCM reaches APNs with the key uploaded to the Firebase project. The text is fixed, "Zunia" / "New activity in your wallet", and the data is `{event, chainId, txHash}`, Android channel `zunia_activity` ([`config/notifications.ts`](./config/notifications.ts)). Sends are deduplicated per transaction and device, coalesced per minute and capped per hour; a failed send is not logged, so a redelivered event is pushed, and a token FCM no longer knows removes its device.
+
+`/internal/*` answers only requests that reach `127.0.0.1` directly. One carrying `X-Forwarded-For`, `X-Real-IP` or `CF-Connecting-IP` came through nginx or Cloudflare and gets a 404. Device routes are limited per client address (read through `TRUST_PROXY`), and a device watches at most 200 pairs.
+
+| Variable | Purpose |
+|----------|---------|
+| `FCM_SERVICE_ACCOUNT_PATH` | Service account key file of the Firebase project (JSON, mode 600), with the Firebase Cloud Messaging API Admin role. Without it every send fails as `fcm_not_configured`. |
+| `FCM_PROJECT_ID` | Optional. Overrides the key's `project_id`. |
+| `INTERNAL_EVENTS_TOKEN` | Shared secret of 32+ characters the indexer sends as `x-zunia-internal-token`, equal to its `BACKEND_EVENTS_TOKEN`. While unset, events are refused. |
+| `ADDRESS_PEPPER` | 16+ characters. Peppers the address hashes; subscribe fails without it. Changing it orphans every watch. |
+| `INDEXER_API_URL` | Indexer base URL, default `http://127.0.0.1:8787`. Also used by the history proxy. |
+| `INDEXER_API_KEY` | The indexer's `INDEXER_API_KEY`, sent as `x-api-key`. |
+| `INDEXER_SUBSCRIBE_TOKEN` | One of the indexer's `INDEXER_SUBSCRIBE_TOKEN` values, sent as `x-zunia-subscribe-token`. |
+
 ## Planned surfaces
 
 | Area | Notes |
 |------|-------|
-| Push registry | `address_hash → devices[]` (platform, token, locale, prefs) |
 | Notifications | Fan-out workers; at-least-once + client dedupe |
 | Indexer proxy | Light tx history via `INDEXER_API_URL` (`zunia-indexer`), platform wallets only |
 | Phishing / dApp registry | Blocklist feed for extension + mobile |
@@ -46,7 +64,7 @@ See [`config/`](./config/): connect relay limits, notification categories, priva
 - Prefer hashed addresses server-side where design allows
 - FCM/APNs payloads are wake-up pings; sensitive detail fetched client-side when possible
 - Never put mnemonic/seed material anywhere in this service
-- Tx events via Vercel Queues (`api/queues/tx-events.ts`, topic `zunia-tx-events`), no amounts in payloads
+- Tx events from the indexer on `POST /internal/tx-events`, or via Vercel Queues (`api/queues/tx-events.ts`, topic `zunia-tx-events`); no amounts in payloads
 
 ## Develop
 
